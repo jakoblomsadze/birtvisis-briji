@@ -8,6 +8,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      GRADLE_OPTS: -Xmx4g
+      JAVA_TOOL_OPTIONS: -Xmx4g
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,18 +25,24 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Provision Gradle
+      - name: Install Android packages
+        run: |
+          sdkmanager --install "platforms;android-34" "build-tools;34.0.0" "platform-tools" "cmdline-tools;latest"
+          yes | sdkmanager --licenses
+
+      - name: Provision Gradle (no cache)
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.7
+          cache-disabled: true
 
       - name: Build debug APK
         run: |
           gradle --version
-          gradle :app:assembleDebug
+          gradle :app:assembleDebug --stacktrace
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: BirtvisiBridge-debug-apk
+          name: BirtvisiHTTPSButtons-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
